@@ -36,8 +36,8 @@ import re, textwrap, string, os, json, time, uuid as python_uuid, numpy as np
 import requests, geocoder, pycountry, math, io, qrcode, bcrypt, voyageai, threading
 
 
-IST_MEDIA_AUTH = [ os.environ.get('IST_MEDIA_AUTH_USERNAME', ''),
-                   os.environ.get('IST_MEDIA_AUTH_PASSWORD', '') ]
+LEAFY_MEDIA_AUTH = [ os.environ.get('LEAFY_MEDIA_AUTH_USERNAME', ''),
+                   os.environ.get('LEAFY_MEDIA_AUTH_PASSWORD', '') ]
 
 DEFAULT_NEWS_COLLECTION = 'news'
 ALLOWED_NEWS_COLLECTIONS = { 'news', 'business_news' }
@@ -184,7 +184,7 @@ def calculate_recommendations(embedding: list[float],
 def calculate_keywords(doc: dict) -> list[str]:
     service_url = app.config['API_BASE_URL'] + '/keywords'
     response = requests.post(service_url,
-                             auth = HTTPBasicAuth(IST_MEDIA_AUTH[0], IST_MEDIA_AUTH[1]),
+                             auth = HTTPBasicAuth(LEAFY_MEDIA_AUTH[0], LEAFY_MEDIA_AUTH[1]),
                              json = { "text" : doc['text'],
                                       "llm" : app.config['AVAILABLE_LLMS']['OpenAI GPT-3.5'] })
     try:
@@ -1207,7 +1207,7 @@ def about():
         service_url = app.config['MAIN_BASE_URL'] + '/stats/article_engagement'
         response = requests.get(
             service_url,
-            auth=HTTPBasicAuth(IST_MEDIA_AUTH[0], IST_MEDIA_AUTH[1]),
+            auth=HTTPBasicAuth(LEAFY_MEDIA_AUTH[0], LEAFY_MEDIA_AUTH[1]),
             params={"days": 90, "limit": 5}
         )
         response.raise_for_status()

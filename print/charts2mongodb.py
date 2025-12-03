@@ -8,7 +8,7 @@ import os
 import json
 from pymongo import MongoClient
 
-client = MongoClient(os.environ.get('MONGODB_IST_MEDIA', ''))
+client = MongoClient(os.environ.get('MONGODB_LEAFY_MEDIA', ''))
 dbName = "1_media_demo"
 collectionName = "charts"
 collection = client[dbName][collectionName]

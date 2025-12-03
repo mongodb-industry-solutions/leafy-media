@@ -10,8 +10,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
 
     # MongoDB Atlas
-    MONGO_URI = os.environ['MONGODB_IST_MEDIA']
-    MONGO_URI_PREVIEW = os.environ['MONGODB_IST_MEDIA_PREVIEW']
+    MONGO_URI = os.environ['MONGODB_LEAFY_MEDIA']
+    MONGO_URI_PREVIEW = os.environ['MONGODB_LEAFY_MEDIA_PREVIEW']
 
     # currently supported LLMs
     AVAILABLE_LLMS = { 'OpenAI GPT-3.5' : 'gpt-3.5-turbo',

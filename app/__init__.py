@@ -32,7 +32,7 @@ class CustomJSONProvider(DefaultJSONProvider):
 def create_app(config_name):
     app = Flask(__name__)
     app.json = CustomJSONProvider(app)
-    app.secret_key = 'IST_MEDIA_SECRET_KEY'
+    app.secret_key = 'LEAFY_MEDIA_SECRET_KEY'
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 

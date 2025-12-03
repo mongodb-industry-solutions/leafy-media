@@ -9,7 +9,7 @@ import os, json, datetime, pymongo
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
-MCONN = os.getenv('MONGODB_IST_MEDIA')
+MCONN = os.getenv('MONGODB_LEAFY_MEDIA')
 MBASE = "1_media_demo"
 
 news_collection = pymongo.MongoClient(MCONN)[MBASE]["news"]

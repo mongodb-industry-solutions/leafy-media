@@ -3,7 +3,7 @@ from voyageai import Client
 from os import environ
 import readline
 
-client = MongoClient(environ.get('MONGODB_IST_MEDIA', ''))
+client = MongoClient(environ.get('MONGODB_LEAFY_MEDIA', ''))
 dbName = "1_media_demo"
 collectionName = "charts"
 collection = client[dbName][collectionName]

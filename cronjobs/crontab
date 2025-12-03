@@ -4,17 +4,17 @@ PATH=/bin:/usr/bin:/usr/local/bin:/usr/pkg/bin:/home/bjjl/bin
 HOME=/var/log
 CRON_WITHIN=7200
 #
-OPENAI_API_KEY=<removed>
+OPENAI_API_KEY=
 #
-AZURE_OPENAI_API_KEY=<removed>
+AZURE_OPENAI_API_KEY=
 AZURE_OPENAI_ENDPOINT=https://gai-220-useast.openai.azure.com/
 #
-MONGODB_IST_MEDIA=<removed>
+MONGODB_LEAFY_MEDIA=
 #
-NEWS_API_URL=<removed>
-NEWS_API_KEY=<removed>
+NEWS_API_URL=
+NEWS_API_KEY=
 #
-AUTOCONTENT_API_KEY=<removed>
+AUTOCONTENT_API_KEY=
 #
 #minute	hour	mday	month	wday	command
 #

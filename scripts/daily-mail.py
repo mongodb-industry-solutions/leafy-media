@@ -7,7 +7,7 @@ import os, datetime, pymongo, smtplib, markdown
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-MCONN = os.getenv('MONGODB_IST_MEDIA')
+MCONN = os.getenv('MONGODB_LEAFY_MEDIA')
 MBASE = "1_media_demo"
 
 news_collection = pymongo.MongoClient(MCONN)[MBASE]["news"]
