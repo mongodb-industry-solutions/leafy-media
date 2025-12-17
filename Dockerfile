@@ -9,10 +9,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies (if needed)
-# RUN apt-get update && apt-get install -y --no-install-recommends \
-#     some-package \
-#     && rm -rf /var/lib/apt/lists/*
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
 COPY requirements.txt .
@@ -36,4 +36,4 @@ EXPOSE 8080
 
 # Run with gunicorn on port 8080
 # Note: Health checks are handled by Kubernetes probes, not Docker HEALTHCHECK
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "4", "--timeout", "120", "manage:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "2", "--timeout", "300", "--graceful-timeout", "30", "--access-logfile", "-", "--error-logfile", "-", "--capture-output", "--log-level", "info", "manage:app"]
