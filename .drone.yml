@@ -1,26 +1,28 @@
 ###########################
-# BACKEND STAGING PIPELINE
+# STAGING PIPELINE
 ###########################
 ---
 kind: pipeline
 type: kubernetes
-name: backend-staging
+name: staging
 
 trigger:
   branch:
     - staging
 
 steps:
-  - name: publish-backend-staging
+  # Step 1: Build and publish Docker image
+  - name: publish
     image: plugins/kaniko-ecr
     settings:
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
       repo: industrysolutions/leafy-media
+      dockerfile: Dockerfile
+      context: .
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}
         - latest
-      dockerfile: Dockerfile.backend
       access_key:
         from_secret: ecr_access_key
       secret_key:
@@ -29,7 +31,8 @@ steps:
       event:
         - push
 
-  - name: deploy-backend-staging
+  # Step 2: Deploy to Kanopy staging
+  - name: deploy-staging
     image: public.ecr.aws/kanopy/drone-helm:v3
     settings:
       chart: mongodb/web-app
@@ -37,46 +40,49 @@ steps:
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: industrysolutions
       release: leafy-media
+      values_files: ["environment/staging.yaml"]
       values:
         - "image.tag=git-${DRONE_COMMIT_SHA:0:7}"
         - "image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/industrysolutions/leafy-media"
         - "ingress.enabled=true"
         - "ingress.hosts[0]=leafy-media.industrysolutions.staging.corp.mongodb.com"
         - "mesh.enabled=true"
-        - "resources.limits.cpu=1000m"
+        - "resources.limits.cpu=500m"
         - "resources.limits.memory=1024Mi"
         - "resources.requests.cpu=250m"
-        - "resources.requests.memory=256Mi"
+        - "resources.requests.memory=512Mi"
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
-      values_files: [ "environments/backend-staging.yaml" ]
     when:
       event:
         - push
+
 ###########################
-# BACKEND PROD PIPELINE
+# PRODUCTION PIPELINE
 ###########################
 ---
 kind: pipeline
 type: kubernetes
-name: backend-prod
+name: production
 
 trigger:
   branch:
     - main
 
 steps:
-  - name: publish-backend-prod
+  # Step 1: Build and publish Docker image
+  - name: publish-prod
     image: plugins/kaniko-ecr
     settings:
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
-      repo: industrysolutions/leafy-media
+      repo: industrysolutions/leafy-media-prod
+      dockerfile: Dockerfile
+      context: .
       tags:
         - git-${DRONE_COMMIT_SHA:0:7}
         - latest
-      dockerfile: Dockerfile.backend
       access_key:
         from_secret: ecr_access_key
       secret_key:
@@ -85,148 +91,29 @@ steps:
       event:
         - push
 
-  - name: deploy-backend-prod
+  # Step 2: Deploy to Kanopy production
+  - name: deploy-prod
     image: public.ecr.aws/kanopy/drone-helm:v3
     settings:
       chart: mongodb/web-app
       chart_version: 4.25.0
       add_repos: [mongodb=https://10gen.github.io/helm-charts]
       namespace: industrysolutions
-      release: leafy-media
+      release: leafy-media-prod
+      values_files: ["environment/production.yaml"]
       values:
         - "image.tag=git-${DRONE_COMMIT_SHA:0:7}"
-        - "image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/industrysolutions/leafy-media"
+        - "image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/industrysolutions/leafy-media-prod"
         - "ingress.enabled=true"
         - "ingress.hosts[0]=leafy-media.industrysolutions.prod.corp.mongodb.com"
         - "mesh.enabled=true"
         - "resources.limits.cpu=1000m"
-        - "resources.limits.memory=1024Mi"
-        - "resources.requests.cpu=250m"
-        - "resources.requests.memory=256Mi"
+        - "resources.limits.memory=2048Mi"
+        - "resources.requests.cpu=500m"
+        - "resources.requests.memory=1024Mi"
       api_server: https://api.prod.corp.mongodb.com
       kubernetes_token:
         from_secret: prod_kubernetes_token
-      values_files: [ "environments/backend-prod.yaml" ]
-    when:
-      event:
-        - push
-###########################
-# FRONTEND STAGING PIPELINE
-###########################
----
-kind: pipeline
-type: kubernetes
-name: frontend-staging
-
-trigger:
-  branch:
-    - staging
-
-steps:
-  - name: publish-frontend-staging
-    image: plugins/kaniko-ecr
-    settings:
-      create_repository: true
-      registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
-      repo: industrysolutions/leafy-media-ui
-      tags:
-        - git-${DRONE_COMMIT_SHA:0:7}
-        - latest
-      dockerfile: Dockerfile.frontend
-      build_args:
-        - NEXT_PUBLIC_API_URL=https://leafy-media.industrysolutions.staging.corp.mongodb.com
-        - NODE_ENV=staging
-      access_key:
-        from_secret: ecr_access_key
-      secret_key:
-        from_secret: ecr_secret_key
-    when:
-      event:
-        - push
-
-  - name: deploy-frontend-staging
-    image: public.ecr.aws/kanopy/drone-helm:v3
-    settings:
-      chart: mongodb/web-app
-      chart_version: 4.25.0
-      add_repos: [mongodb=https://10gen.github.io/helm-charts]
-      namespace: industrysolutions
-      release: leafy-media-ui
-      values:
-        - "image.tag=git-${DRONE_COMMIT_SHA:0:7}"
-        - "image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/industrysolutions/leafy-media-ui"
-        - "ingress.enabled=true"
-        - "ingress.hosts[0]=leafy-media-ui.industrysolutions.staging.corp.mongodb.com"
-        - "mesh.enabled=true"
-        - "env.NEXT_PUBLIC_API_URL=https://leafy-media.industrysolutions.staging.corp.mongodb.com"
-        - "resources.limits.cpu=1000m"
-        - "resources.limits.memory=1024Mi"
-        - "resources.requests.cpu=250m"
-        - "resources.requests.memory=256Mi"
-      api_server: https://api.staging.corp.mongodb.com
-      kubernetes_token:
-        from_secret: staging_kubernetes_token
-      values_files: [ "environments/frontend-staging.yaml" ]
-    when:
-      event:
-        - push
-###########################
-# FRONTEND PROD PIPELINE
-###########################
----
-kind: pipeline
-type: kubernetes
-name: frontend-prod
-
-trigger:
-  branch:
-    - main
-
-steps:
-  - name: publish-frontend-prod
-    image: plugins/kaniko-ecr
-    settings:
-      create_repository: true
-      registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
-      repo: industrysolutions/leafy-media-ui
-      tags:
-        - git-${DRONE_COMMIT_SHA:0:7}
-        - prod-latest
-      dockerfile: Dockerfile.frontend
-      build_args:
-        - NEXT_PUBLIC_API_URL=https://leafy-media.industrysolutions.prod.corp.mongodb.com
-        - NODE_ENV=production
-      access_key:
-        from_secret: ecr_access_key
-      secret_key:
-        from_secret: ecr_secret_key
-    when:
-      event:
-        - push
-
-  - name: deploy-frontend-prod
-    image: public.ecr.aws/kanopy/drone-helm:v3
-    settings:
-      chart: mongodb/web-app
-      chart_version: 4.25.0
-      add_repos: [mongodb=https://10gen.github.io/helm-charts]
-      namespace: industrysolutions
-      release: leafy-media-ui
-      values:
-        - "image.tag=git-${DRONE_COMMIT_SHA:0:7}"
-        - "image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/industrysolutions/leafy-media-ui"
-        - "ingress.enabled=true"
-        - "ingress.hosts[0]=leafy-media-ui.industrysolutions.prod.corp.mongodb.com"
-        - "mesh.enabled=true"
-        - "env.NEXT_PUBLIC_API_URL=https://leafy-media.industrysolutions.prod.corp.mongodb.com"
-        - "resources.limits.cpu=1000m"
-        - "resources.limits.memory=1024Mi"
-        - "resources.requests.cpu=250m"
-        - "resources.requests.memory=256Mi"
-      api_server: https://api.prod.corp.mongodb.com
-      kubernetes_token:
-        from_secret: prod_kubernetes_token
-      values_files: [ "environments/frontend-prod.yaml" ]
     when:
       event:
         - push

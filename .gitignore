@@ -1,5 +1,6 @@
 # Kanopy
 knowledge_base_kanopy/
+cicd-kanopy/
 
 # Security checks
 security_check.sh

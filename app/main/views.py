@@ -67,22 +67,31 @@ MAX_RAG = 7       # number of articles for RAG context - 128k token limit
 ###          BEGIN video search          ###
 ############################################
 
-parent_folder = "/usr/local/share/content/video/frames"
+# Use environment variable for content directory, with fallback
+CONTENT_DIR = os.environ.get('CONTENT_DIR', '/app/content')
+parent_folder = os.path.join(CONTENT_DIR, 'video/frames')
 frames = []
 
-print("Building movie search array...", end="", flush=True)
-for root, _, files in os.walk(parent_folder):
-    for fname in sorted(files):
-        if fname.endswith(".json") and fname.startswith("frame_"):
-            path = os.path.join(root, fname)
-            with open(path, "r") as f:
-                data = json.load(f)
-                frames.append({
-                    "movie": data["movie"],
-                    "offset": data["offset"],
-                    "embedding": data["embedding"]
-                })
-print(" done")
+# Gracefully handle missing video frames directory
+try:
+    if os.path.exists(parent_folder):
+        print("Building movie search array...", end="", flush=True)
+        for root, _, files in os.walk(parent_folder):
+            for fname in sorted(files):
+                if fname.endswith(".json") and fname.startswith("frame_"):
+                    path = os.path.join(root, fname)
+                    with open(path, "r") as f:
+                        data = json.load(f)
+                        frames.append({
+                            "movie": data["movie"],
+                            "offset": data["offset"],
+                            "embedding": data["embedding"]
+                        })
+        print(f" done ({len(frames)} frames loaded)")
+    else:
+        print(f"Video frames directory not found: {parent_folder} - skipping video search init")
+except Exception as e:
+    print(f"Error loading video frames: {e} - video search will be unavailable")
 
 def cosine_similarity(a, b):
     a = np.array(a)
@@ -806,6 +815,16 @@ def add_to_fifo_if_not_exists(username, array_field, doc, max_length=10): # TODO
         }
     )
     return True
+
+
+@main.route('/health')
+def health():
+    """Health check endpoint for Kubernetes liveness/readiness probes."""
+    return jsonify({
+        'status': 'healthy',
+        'service': 'leafy-media',
+        'timestamp': datetime.utcnow().isoformat()
+    }), 200
 
 
 @main.route('/')
