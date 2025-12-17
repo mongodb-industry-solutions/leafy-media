@@ -42,14 +42,8 @@ LEAFY_MEDIA_AUTH = [ os.environ.get('LEAFY_MEDIA_AUTH_USERNAME', ''),
 DEFAULT_NEWS_COLLECTION = 'news'
 ALLOWED_NEWS_COLLECTIONS = { 'news', 'business_news' }
 
-gen_ai_cache_collection = mongo.db.gen_ai_cache
-ip_info_cache_collection = mongo.db.ip_info_cache
-access_log_collection = mongo.db.access_log
-daily_collection = mongo.db.daily
-users_collection = mongo.db.users
-solana_collection_tx = mongo.db.solana_tx
-solana_collection_tmp = mongo.db.solana_tmp
-engagement_events_collection = mongo.db.engagement_events
+# Note: mongo.db collections are accessed directly in functions (e.g., mongo.db.users)
+# This avoids module-level access before Flask app context is ready
 
 ai = OpenAI()
 voyage_ai = voyageai.Client()
@@ -127,14 +121,14 @@ def collection():
 
 def log(request):
     ip = request.environ.get("X-Real-IP", request.remote_addr)
-    loc = ip_info_cache_collection.find_one({ "ip" : ip })
+    loc = mongo.db.ip_info_cache.find_one({ "ip" : ip })
     if not loc:
         debug("Retrieving IP location information for " + ip + " with geocoder web service")
         ws = geocoder.ip(ip)
         loc = { "ip" : ip,
                 "city" : ws.city if ws.city else " - ",
                 "country" : ws.country if ws.country else " - " }
-        ip_info_cache_collection.insert_one(loc)
+        mongo.db.ip_info_cache.insert_one(loc)
     #logger.info(ip + " (" + loc['city'] + ", " + loc['country'] + "): " + request.base_url +
     #        (" (" + str(request.content_length) + " bytes)" if request.content_length else ""))
     try:
@@ -148,7 +142,7 @@ def log(request):
             log_entry = { "timestamp" : datetime.utcnow(),
                           "path" : urlparse(request.base_url).path,
                           "ip" : loc['ip']}
-        access_log_collection.insert_one(log_entry)
+        mongo.db.access_log.insert_one(log_entry)
     except Exception as e:
         print(e)
     return loc
@@ -272,7 +266,7 @@ def calculate_using_rag(question: str) -> str:
             | StrOutputParser()
         )
         answer = chain.invoke(question)
-        gen_ai_cache_collection.insert_one( { "question" : question, "answer" : answer } )
+        mongo.db.gen_ai_cache.insert_one( { "question" : question, "answer" : answer } )
 
     except Exception as e:
         print(e) # will be printed in the log file that is residing in /tmp
@@ -294,7 +288,7 @@ def check_for_quality_read():
                 collection().update_one({ "uuid" : session['uuid'] },
                                         { "$inc" : { "read_count" : 1 }})
                 if 'user' in session:
-                    users_collection.update_one( { "username" : session['user'] },
+                    mongo.db.users.update_one( { "username" : session['user'] },
                                                  { "$inc" : { "articles_read" : 1 }})
             except Exception as e:
                 print(e)
@@ -307,12 +301,12 @@ def get_user_dict(request):
         "is_anonymous" : True
     }
     if "user" in session:
-        db_user = users_collection.find_one({ "username" : session["user"] })
+        db_user = mongo.db.users.find_one({ "username" : session["user"] })
         if db_user:
             user_dict.update(db_user)
             user_dict["is_anonymous"] = False
     elif anon_id := request.cookies.get("anon_id"):
-        db_user = users_collection.find_one_and_update(
+        db_user = mongo.db.users.find_one_and_update(
             { "username" : anon_id },
             { "$setOnInsert" : { "fullname" : "Anonymous User" } },
             upsert=True,
@@ -436,7 +430,7 @@ def show_json(_id):
         doc = collection().find_one({ "_id" : ObjectId(_id) })
         title = "MongoDB Article Document"
         if not doc:
-            doc = users_collection.find_one({ "_id" : ObjectId(_id) })
+            doc = mongo.db.users.find_one({ "_id" : ObjectId(_id) })
             title = "MongoDB User Document"
     json_data = json.dumps(doc, indent=2, ensure_ascii=False, cls=MongoJSONEncoder)
     return render_template('json.html', json_data=json_data, title=title)
@@ -480,7 +474,7 @@ def track_event():
 
     event["ts"] = datetime.utcnow()
 
-    engagement_events_collection.insert_one(event)
+    mongo.db.engagement_events.insert_one(event)
     return jsonify({"status": "ok"})
 
 
@@ -512,7 +506,7 @@ def delete_articles_history():
     log(request)
     session['history'] = []
     if 'user' in session:
-        users_collection.update_one({ 'username' : session['user'] }, { "$unset" : { "articles_visited" : 1 } })
+        mongo.db.users.update_one({ 'username' : session['user'] }, { "$unset" : { "articles_visited" : 1 } })
     return redirect('/backstage')
 
 
@@ -521,7 +515,7 @@ def delete_articles_history_from_homepage():
     log(request)
     session['history'] = []
     if 'user' in session:
-        users_collection.update_one({ 'username' : session['user'] }, { "$unset" : { "articles_visited" : 1 } })
+        mongo.db.users.update_one({ 'username' : session['user'] }, { "$unset" : { "articles_visited" : 1 } })
     return redirect('/')
 
 
@@ -529,7 +523,7 @@ def delete_articles_history_from_homepage():
 def delete_insights_history_item(id):
     log(request)
     try:
-        gen_ai_cache_collection.delete_one({ "_id" : ObjectId(id) })
+        mongo.db.gen_ai_cache.delete_one({ "_id" : ObjectId(id) })
     except Exception as e:
         print(e)
     return redirect('/backstage')
@@ -611,7 +605,7 @@ def do_register():
     email = request.form.get('email')
 
     hashed_password = bcrypt.hashpw(password, bcrypt.gensalt())
-    users_collection.insert_one( { 'username' : username, 'password' : hashed_password,
+    mongo.db.users.insert_one( { 'username' : username, 'password' : hashed_password,
                                    'fullname' : fullname, 'email' : email } )
     session['user'] = username
     return redirect('/profile')
@@ -637,7 +631,7 @@ def do_login():
     username = request.form.get('username')
     password = request.form.get('password').encode('utf-8')
 
-    user = users_collection.find_one( { 'username' : username } )
+    user = mongo.db.users.find_one( { 'username' : username } )
 
     if user and bcrypt.checkpw(password, user['password']):
         session['user'] = username
@@ -724,7 +718,7 @@ def payment_final():
         # 5 USD = 500 Coins - given for any SOL amount paid --
         # this would need to be further hardened for production use
         coins_additional = 500 if sol_amount > 0 else 0
-        user = users_collection.find_one_and_update(
+        user = mongo.db.users.find_one_and_update(
             { 'username' : session['user'] },
             { '$inc' : { 'coins_current' : coins_additional,
                          'coins_lifetime' : coins_additional }},
@@ -754,7 +748,7 @@ def qr_image(amount):
 @main.route('/status')
 def payment_status():
     #log(request)
-    tx_tmp = solana_collection_tmp.find_one({ "memo" : get_memo() })
+    tx_tmp = mongo.db.solana_tmp.find_one({ "memo" : get_memo() })
     if tx_tmp:
         session['tx_in_progress'] = tx_tmp["signature"]
         return tx_tmp["signature"]
@@ -766,10 +760,10 @@ def payment_status():
 def payment_status_stage_2():
     log(request)
     if 'tx_in_progress' in session:
-        tx = solana_collection_tx.find_one({ "signature" : session['tx_in_progress'],
+        tx = mongo.db.solana_tx.find_one({ "signature" : session['tx_in_progress'],
                                              "memo" : get_memo() })
         if tx:
-            users_collection.update_one({ 'username' : get_memo() }, { '$push' : { 'txs' : tx } })
+            mongo.db.users.update_one({ 'username' : get_memo() }, { '$push' : { 'txs' : tx } })
             session.pop('tx_in_progress')
             session["amount_paid"] = tx["amount"]
             return "tx_confirmed"
@@ -797,13 +791,13 @@ def get_embeddings(articles_visited):
 
 
 def add_to_fifo_if_not_exists(username, array_field, doc, max_length=10): # TODO: define `max_length´ constant
-    existing = users_collection.find_one({
+    existing = mongo.db.users.find_one({
         "username" : username,
         f"{array_field}.uuid" : doc['uuid']
     })
     if existing:
         return False
-    users_collection.update_one(
+    mongo.db.users.update_one(
         { "username" : username },
         {
             "$push" : {
@@ -887,7 +881,7 @@ def index():
                     infoline = "Sorted by time"
                     section = "_all"
             else:
-                user = users_collection.find_one({ "username" : session['user']})
+                user = mongo.db.users.find_one({ "username" : session['user']})
                 if 'articles_visited' in user:
                     read_vectors = get_embeddings(user["articles_visited"])
                     user_vector = np.mean(read_vectors, axis=0).tolist()
@@ -1166,14 +1160,14 @@ def post():
             recommendations = []
         collection().update_one({ "_id" : doc["_id"] }, { "$inc" : { "visit_count" : 1 }})
         if 'user' in session:
-            #result = users_collection.update_one({ 'username' : session['user'],
+            #result = mongo.db.users.update_one({ 'username' : session['user'],
             #                                       'articles_visited': { '$not' : { '$eq' : doc['uuid'] }}},
             #                                     { '$inc' : { 'coins_current' : -1 },
             #                                       '$push' : { 'articles_visited' : doc['uuid'] }})
             #purchased = 'now' if result.modified_count > 0 else 'earlier'
             result_inserted = add_to_fifo_if_not_exists(session['user'], 'articles_visited', doc)
             if result_inserted:
-                users_collection.update_one(
+                mongo.db.users.update_one(
                     { 'username' : session['user'] },
                     { '$inc': { 'coins_current' : -1 }}
                 )
@@ -1208,13 +1202,13 @@ def about():
                                         { "uuid" : 1, "title" : 1, "_id" : 0 }),
                     reversed(session['history'])))
     try:
-        gen_ai_cache = list(gen_ai_cache_collection.find().sort({ "$natural" : -1 }).limit(100))
+        gen_ai_cache = list(mongo.db.gen_ai_cache.find().sort({ "$natural" : -1 }).limit(100))
     except Exception as e:
         gen_ai_cache = []
         print(e) # will be printed in the log file that is residing in /tmp
     try:
-        country_stats = list(access_log_collection.aggregate(request_stats_pipelines['countries']))
-        path_stats = list(access_log_collection.aggregate(request_stats_pipelines['paths']))
+        country_stats = list(mongo.db.access_log.aggregate(request_stats_pipelines['countries']))
+        path_stats = list(mongo.db.access_log.aggregate(request_stats_pipelines['paths']))
         for entry in country_stats: # add full country names
             entry['country'] = get_country_name(entry['_id'])
     except Exception as e:
@@ -1319,7 +1313,7 @@ def daily():
 
     formatted_date = now.strftime("%d %B %Y")
     try:
-        doc = daily_collection.find_one({ "day" : formatted_date })
+        doc = mongo.db.daily.find_one({ "day" : formatted_date })
         summary = html(doc['summary']) if 'summary' in doc else None
         entities = doc['entities'] if 'entities' in doc else []
         podcast = f"/content/audio/podcast-{now:%d.%m.%Y}.mp3"
@@ -1344,7 +1338,7 @@ def insights():
     _id = request.args.get('_id')
     query = request.args.get('query')
     try:
-        gen_ai_cache = list(gen_ai_cache_collection.find().sort({ "$natural" : -1 }).limit(20))
+        gen_ai_cache = list(mongo.db.gen_ai_cache.find().sort({ "$natural" : -1 }).limit(20))
     except Exception as e:
         gen_ai_cache = []
         print(e) # will be printed in the log file that is residing in /tmp
@@ -1355,7 +1349,7 @@ def insights():
                                title=title, content=content, gen_ai_cache=gen_ai_cache)
     elif _id and _id != "":
         try:
-            cached_entry = gen_ai_cache_collection.find_one({ "_id" : ObjectId(_id) })
+            cached_entry = mongo.db.gen_ai_cache.find_one({ "_id" : ObjectId(_id) })
         except Exception as e:
             cached_entry = { "question" : "AI-Generated Insights (RAG)" ,
                              "answer" : "Error reading cached Q/A"}
@@ -1368,7 +1362,7 @@ def insights():
         query = query.strip()
         cached_entry = None
         try:
-            cached_entry = gen_ai_cache_collection.find_one({ "question" : query })
+            cached_entry = mongo.db.gen_ai_cache.find_one({ "question" : query })
         except Exception as e:
             print(e) # will be printed in the log file that is residing in /tmp
         if cached_entry:

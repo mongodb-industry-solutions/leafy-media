@@ -18,8 +18,8 @@ from langchain_openai import ChatOpenAI
 import os, re, datetime, json, geocoder, uuid
 
 
-ip_info_cache_collection = mongo.db.ip_info_cache
-news_incoming_collection = mongo.db.news_incoming
+# Note: mongo.db collections are accessed directly in functions
+# This avoids module-level access before Flask app context is ready
 
 ai = OpenAI()
 
@@ -30,14 +30,14 @@ def debug(msg: str):
 
 def log(request):
     ip = request.environ.get("X-Real-IP", request.remote_addr)
-    loc = ip_info_cache_collection.find_one({ "ip" : ip })
+    loc = mongo.db.ip_info_cache.find_one({ "ip" : ip })
     if not loc:
         debug("Retrieving IP location information for " + ip + " with geocoder web service")
         ws = geocoder.ip(ip)
         loc = { "ip" : ip,
                 "city" : ws.city if ws.city else " - ",
                 "country" : ws.country if ws.country else " - " }
-        ip_info_cache_collection.insert_one(loc)
+        mongo.db.ip_info_cache.insert_one(loc)
     logger.info(ip + " (" + loc['city'] + ", " + loc['country'] + "): " + request.base_url +
             (" (" + str(request.content_length) + " bytes)" if request.content_length else ""))
 
@@ -163,7 +163,7 @@ def create():
             'text' : text,
             'published' : datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
         }
-        result = news_incoming_collection.insert_one(article)
+        result = mongo.db.news_incoming.insert_one(article)
         if result.inserted_id:
             if json_params:
                 return jsonify({ 'status' : 'ok', 'id' : result.inserted_id })
@@ -249,7 +249,7 @@ def create_from_url():
             'text' : text,
             'published' : datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
         }
-        result = news_incoming_collection.insert_one(article)
+        result = mongo.db.news_incoming.insert_one(article)
         if result.inserted_id:
             if json_params:
                 return jsonify({ 'status' : 'ok', 'id' : result.inserted_id })

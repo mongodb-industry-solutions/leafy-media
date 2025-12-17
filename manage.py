@@ -4,7 +4,11 @@
 # Author: Benjamin Lorenz <benjamin.lorenz@mongodb.com>
 #
 
+# Load environment variables FIRST, before any other imports
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 from app import create_app, mongo
 
 flask_config = os.getenv('FLASK_CONFIG') or 'production'

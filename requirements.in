@@ -16,6 +16,7 @@ pillow
 pycountry
 pydub
 python-dateutil
+python-dotenv
 qrcode
 gunicorn
 websocket-client
