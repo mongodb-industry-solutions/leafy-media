@@ -296,7 +296,7 @@ tzlocal==5.3.1
     # via apscheduler
 urllib3==2.5.0
     # via requests
-uwsgi==2.0.30
+gunicorn==23.0.0
     # via -r requirements.in
 voyageai==0.3.5
     # via langchain-voyageai

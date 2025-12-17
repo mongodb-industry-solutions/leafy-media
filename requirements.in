@@ -17,5 +17,5 @@ pycountry
 pydub
 python-dateutil
 qrcode
-uwsgi
+gunicorn
 websocket-client
