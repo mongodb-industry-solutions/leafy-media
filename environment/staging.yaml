@@ -47,8 +47,7 @@ persistence:
   name: leafy-media-content-staging
   size: 10Gi
   mountPath: /app/content
-  accessModes:
-    - ReadWriteOnce
+  accessMode: ReadWriteOnce
 
 # Liveness/Readiness probes
 probes:
