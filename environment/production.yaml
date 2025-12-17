@@ -47,7 +47,8 @@ persistence:
   name: leafy-media-content-prod
   size: 10Gi
   mountPath: /app/content
-  # No storageClass needed - uses default RWO (EBS)
+  accessModes:
+    - ReadWriteOnce
 
 # Liveness/Readiness probes
 probes:
