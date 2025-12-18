@@ -48,20 +48,3 @@ persistence:
   size: 10Gi
   mountPath: /app/content
   accessMode: ReadWriteOnce
-
-# Liveness/Readiness probes
-probes:
-  enabled: true
-  path: /health
-  liveness:
-    httpGet: true
-    initialDelaySeconds: 15
-    periodSeconds: 30
-    timeoutSeconds: 5
-    failureThreshold: 3
-  readiness:
-    httpGet: true
-    initialDelaySeconds: 10
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 3
