@@ -64,6 +64,24 @@ MAX_RAG = 7       # number of articles for RAG context - 128k token limit
 # Use environment variable for content directory, with fallback
 CONTENT_DIR = os.environ.get('CONTENT_DIR', '/app/content')
 parent_folder = os.path.join(CONTENT_DIR, 'video/frames')
+
+
+############################################
+###       Content file serving           ###
+############################################
+
+@main.route('/content/<path:filename>')
+def serve_content(filename):
+    """Serve content files (images, audio, video) from the persistent volume."""
+    from flask import send_from_directory, abort
+    content_path = os.path.join(CONTENT_DIR, filename)
+    if not os.path.exists(content_path):
+        abort(404)
+    directory = os.path.dirname(content_path)
+    file_name = os.path.basename(content_path)
+    return send_from_directory(directory, file_name)
+
+
 frames = []
 
 # Gracefully handle missing video frames directory

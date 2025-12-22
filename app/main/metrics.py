@@ -5,6 +5,7 @@
 
 from flask import request, jsonify
 from datetime import datetime, timedelta, timezone
+from .. import mongo
 
 
 def _daterange_utc_days(start_incl: datetime, end_excl: datetime):
@@ -75,8 +76,7 @@ def _compute_daily_indices(user_id: str, days_back: int = 28,
         { "$sort" : { "day" : 1 }}
     ]
 
-    from .views import engagement_events_collection
-    docs = list(engagement_events_collection.aggregate(pipeline))
+    docs = list(mongo.db.engagement_events.aggregate(pipeline))
 
     # Map existing days -> computed metrics
     by_day = {}
@@ -206,8 +206,7 @@ def compute_user_engagement(user_id: str, windows=(3, 7, 28),
     )
 
     # Calculate the first time a user_id was logged
-    from .views import engagement_events_collection
-    first_seen_doc = next(engagement_events_collection.aggregate([
+    first_seen_doc = next(mongo.db.engagement_events.aggregate([
         { "$match" : { "user_id" : user_id }},
         { "$group" : { "_id" : None, "first_seen" : { "$min" : "$ts" }}}
     ]), None)
