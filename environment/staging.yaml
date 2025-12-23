@@ -1,50 +1,112 @@
 # Kanopy Environment Configuration - Staging
-# Leafy Media Flask Application
+# Leafy Media - nginx + Flask sidecar deployment
 
-env:
-  FLASK_CONFIG: production
-  FLASK_ENV: staging
-
-  # Base URLs (localhost for internal self-calls)
-  MAIN_BASE_URL: http://localhost:8080
-  API_BASE_URL: http://localhost:8080/api
-
-  # Content directory (local path in container)
-  CONTENT_DIR: /app/content
-
-# Secrets - reference Kubernetes secrets created via helm ksec
-envSecrets:
-  # MongoDB connections
-  MONGODB_LEAFY_MEDIA: leafy-media
-  MONGODB_LEAFY_MEDIA_PREVIEW: leafy-media
-
-  # OpenAI / Azure OpenAI
-  OPENAI_API_KEY: leafy-media
-  AZURE_OPENAI_API_KEY: leafy-media
-  AZURE_OPENAI_ENDPOINT: leafy-media
-
-  # xAI API
-  XAI_API_KEY: leafy-media
-
-  # Voyage AI (for embeddings)
-  VOYAGE_API_KEY: leafy-media
-
-  # News API
-  NEWS_API_URL: leafy-media
-  NEWS_API_KEY: leafy-media
-
-  # Auto Content API (for podcasts)
-  AUTOCONTENT_API_KEY: leafy-media
-
-  # Basic Auth credentials
-  LEAFY_MEDIA_AUTH_USERNAME: leafy-media
-  LEAFY_MEDIA_AUTH_PASSWORD: leafy-media
+# Main container (nginx) - no env vars needed
 
 # Persistent Volume for content storage (images, audio, video)
-# Uses RWO (Read-Write-Once) - default EBS storage, no support ticket needed
+# Used by both nginx (read) and Flask sidecar (read/write)
 persistence:
   enabled: true
   name: leafy-media-content-staging
   size: 10Gi
   mountPath: /app/content
   accessMode: ReadWriteOnce
+
+# Flask sidecar container
+sidecarContainers:
+  - name: flask
+    image: 795250896452.dkr.ecr.us-east-1.amazonaws.com/industrysolutions/leafy-media-flask:latest
+    ports:
+      - containerPort: 8000
+        name: flask
+    # Flask sidecar environment variables
+    env:
+      - name: FLASK_CONFIG
+        value: production
+      - name: FLASK_ENV
+        value: staging
+      - name: MAIN_BASE_URL
+        value: http://localhost:8080
+      - name: API_BASE_URL
+        value: http://localhost:8080/api
+      - name: CONTENT_DIR
+        value: /app/content
+      # MongoDB connections
+      - name: MONGODB_LEAFY_MEDIA
+        valueFrom:
+          secretKeyRef:
+            name: leafy-media
+            key: MONGODB_LEAFY_MEDIA
+      - name: MONGODB_LEAFY_MEDIA_PREVIEW
+        valueFrom:
+          secretKeyRef:
+            name: leafy-media
+            key: MONGODB_LEAFY_MEDIA_PREVIEW
+      # OpenAI / Azure OpenAI
+      - name: OPENAI_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: leafy-media
+            key: OPENAI_API_KEY
+      - name: AZURE_OPENAI_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: leafy-media
+            key: AZURE_OPENAI_API_KEY
+      - name: AZURE_OPENAI_ENDPOINT
+        valueFrom:
+          secretKeyRef:
+            name: leafy-media
+            key: AZURE_OPENAI_ENDPOINT
+      # xAI API
+      - name: XAI_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: leafy-media
+            key: XAI_API_KEY
+      # Voyage AI (for embeddings)
+      - name: VOYAGE_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: leafy-media
+            key: VOYAGE_API_KEY
+      # News API
+      - name: NEWS_API_URL
+        valueFrom:
+          secretKeyRef:
+            name: leafy-media
+            key: NEWS_API_URL
+      - name: NEWS_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: leafy-media
+            key: NEWS_API_KEY
+      # Auto Content API (for podcasts)
+      - name: AUTOCONTENT_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: leafy-media
+            key: AUTOCONTENT_API_KEY
+      # Basic Auth credentials
+      - name: LEAFY_MEDIA_AUTH_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: leafy-media
+            key: LEAFY_MEDIA_AUTH_USERNAME
+      - name: LEAFY_MEDIA_AUTH_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: leafy-media
+            key: LEAFY_MEDIA_AUTH_PASSWORD
+    # Mount the same PV for content access
+    volumeMounts:
+      - name: leafy-media-content-staging
+        mountPath: /app/content
+    # Resources for Flask sidecar
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1024Mi
+      requests:
+        cpu: 250m
+        memory: 512Mi

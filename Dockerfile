@@ -1,6 +1,6 @@
 #
 # Dockerfile - Flask App for Leafy Media (Kanopy)
-# Single container deployment on port 8080
+# Sidecar container - nginx proxies to this on port 8000
 #
 # Copyright (c) 2024, 2025 MongoDB Inc.
 #
@@ -31,9 +31,9 @@ RUN mkdir -p /app/content/images /app/content/audio /app/content/video/frames
 ENV FLASK_CONFIG=production
 ENV PYTHONUNBUFFERED=1
 
-# Kanopy requires port 8080
-EXPOSE 8080
+# Sidecar runs on port 8000 (nginx main container handles 8080)
+EXPOSE 8000
 
-# Run with gunicorn on port 8080
+# Run with gunicorn on port 8000
 # Note: Health checks are handled by Kubernetes probes, not Docker HEALTHCHECK
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "2", "--timeout", "300", "--graceful-timeout", "30", "--access-logfile", "-", "--error-logfile", "-", "--capture-output", "--log-level", "info", "manage:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "2", "--timeout", "300", "--graceful-timeout", "30", "--access-logfile", "-", "--error-logfile", "-", "--capture-output", "--log-level", "info", "manage:app"]

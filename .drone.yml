@@ -11,13 +11,33 @@ trigger:
     - staging
 
 steps:
-  # Step 1: Build and publish Docker image
-  - name: publish
+  # Step 1: Build and publish nginx image (main container)
+  - name: publish-nginx
     image: plugins/kaniko-ecr
     settings:
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
-      repo: industrysolutions/leafy-media
+      repo: industrysolutions/leafy-media-nginx
+      dockerfile: nginx/Dockerfile
+      context: .
+      tags:
+        - git-${DRONE_COMMIT_SHA:0:7}
+        - latest
+      access_key:
+        from_secret: ecr_access_key
+      secret_key:
+        from_secret: ecr_secret_key
+    when:
+      event:
+        - push
+
+  # Step 2: Build and publish Flask image (sidecar container)
+  - name: publish-flask
+    image: plugins/kaniko-ecr
+    settings:
+      create_repository: true
+      registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
+      repo: industrysolutions/leafy-media-flask
       dockerfile: Dockerfile
       context: .
       tags:
@@ -31,7 +51,7 @@ steps:
       event:
         - push
 
-  # Step 2: Deploy to Kanopy staging
+  # Step 3: Deploy to Kanopy staging
   - name: deploy-staging
     image: public.ecr.aws/kanopy/drone-helm:v3
     settings:
@@ -42,15 +62,20 @@ steps:
       release: leafy-media
       values_files: ["environment/staging.yaml"]
       values:
+        # Main container: nginx
         - "image.tag=git-${DRONE_COMMIT_SHA:0:7}"
-        - "image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/industrysolutions/leafy-media"
+        - "image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/industrysolutions/leafy-media-nginx"
+        # Sidecar container: Flask
+        - "sidecarContainers[0].image=795250896452.dkr.ecr.us-east-1.amazonaws.com/industrysolutions/leafy-media-flask:git-${DRONE_COMMIT_SHA:0:7}"
+        # Ingress
         - "ingress.enabled=true"
         - "ingress.hosts[0]=leafy-media.industrysolutions.staging.corp.mongodb.com"
         - "mesh.enabled=true"
-        - "resources.limits.cpu=500m"
-        - "resources.limits.memory=1024Mi"
-        - "resources.requests.cpu=250m"
-        - "resources.requests.memory=512Mi"
+        # Resources for main container (nginx - lightweight)
+        - "resources.limits.cpu=200m"
+        - "resources.limits.memory=256Mi"
+        - "resources.requests.cpu=100m"
+        - "resources.requests.memory=128Mi"
       api_server: https://api.staging.corp.mongodb.com
       kubernetes_token:
         from_secret: staging_kubernetes_token
@@ -71,13 +96,33 @@ trigger:
     - main
 
 steps:
-  # Step 1: Build and publish Docker image
-  - name: publish-prod
+  # Step 1: Build and publish nginx image (main container)
+  - name: publish-nginx-prod
     image: plugins/kaniko-ecr
     settings:
       create_repository: true
       registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
-      repo: industrysolutions/leafy-media-prod
+      repo: industrysolutions/leafy-media-nginx-prod
+      dockerfile: nginx/Dockerfile
+      context: .
+      tags:
+        - git-${DRONE_COMMIT_SHA:0:7}
+        - latest
+      access_key:
+        from_secret: ecr_access_key
+      secret_key:
+        from_secret: ecr_secret_key
+    when:
+      event:
+        - push
+
+  # Step 2: Build and publish Flask image (sidecar container)
+  - name: publish-flask-prod
+    image: plugins/kaniko-ecr
+    settings:
+      create_repository: true
+      registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
+      repo: industrysolutions/leafy-media-flask-prod
       dockerfile: Dockerfile
       context: .
       tags:
@@ -91,7 +136,7 @@ steps:
       event:
         - push
 
-  # Step 2: Deploy to Kanopy production
+  # Step 3: Deploy to Kanopy production
   - name: deploy-prod
     image: public.ecr.aws/kanopy/drone-helm:v3
     settings:
@@ -102,15 +147,20 @@ steps:
       release: leafy-media-prod
       values_files: ["environment/production.yaml"]
       values:
+        # Main container: nginx
         - "image.tag=git-${DRONE_COMMIT_SHA:0:7}"
-        - "image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/industrysolutions/leafy-media-prod"
+        - "image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/industrysolutions/leafy-media-nginx-prod"
+        # Sidecar container: Flask
+        - "sidecarContainers[0].image=795250896452.dkr.ecr.us-east-1.amazonaws.com/industrysolutions/leafy-media-flask-prod:git-${DRONE_COMMIT_SHA:0:7}"
+        # Ingress
         - "ingress.enabled=true"
         - "ingress.hosts[0]=leafy-media.industrysolutions.prod.corp.mongodb.com"
         - "mesh.enabled=true"
-        - "resources.limits.cpu=1000m"
-        - "resources.limits.memory=2048Mi"
-        - "resources.requests.cpu=500m"
-        - "resources.requests.memory=1024Mi"
+        # Resources for main container (nginx - lightweight)
+        - "resources.limits.cpu=300m"
+        - "resources.limits.memory=512Mi"
+        - "resources.requests.cpu=150m"
+        - "resources.requests.memory=256Mi"
       api_server: https://api.prod.corp.mongodb.com
       kubernetes_token:
         from_secret: prod_kubernetes_token
