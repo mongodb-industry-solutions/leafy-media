@@ -59,7 +59,7 @@ def create_app(config_name):
     root_logger.addHandler(console_handler)
     root_logger.addHandler(file_handler)
 
-    logging.getLogger('apscheduler').setLevel(logging.WARNING)
+    logging.getLogger('apscheduler').setLevel(logging.INFO)
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger('werkzeug').setLevel(logging.WARNING)
 
@@ -100,10 +100,9 @@ def create_app(config_name):
 
     # scheduler initialization
     from .jobs import agentic_master_planner
-    # TEMPORARILY DISABLED - cron jobs
+    # Cron job imports kept for manual triggering via /admin/jobs/run/<job_name>
     # from .cronjobs import (
     #     job_update_content,
-    #     job_update_section,
     #     job_update_daily,
     #     job_create_podcast,
     #     job_keep_cache_warm,
@@ -125,11 +124,12 @@ def create_app(config_name):
     )
 
     # -------------------------------------------------------------------------
-    # TEMPORARILY DISABLED - Content Update Jobs
-    # To re-enable, uncomment the imports above and the job registrations below
+    # Content Update Jobs - DISABLED (use /admin/jobs/run/<job_name> to trigger manually)
     # -------------------------------------------------------------------------
 
-    logger.info("Scheduler started (cron jobs temporarily disabled)")
+    print("[SCHEDULER] Cron jobs disabled (manual trigger only via /admin/jobs/run/<job_name>)", flush=True)
+    for job in scheduler.get_jobs():
+        print(f"[SCHEDULER]   - {job.id}: next run at {job.next_run_time}", flush=True)
 
     # Request logging middleware
     @app.before_request
