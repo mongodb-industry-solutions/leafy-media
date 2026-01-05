@@ -4,8 +4,7 @@
 #
 # Copyright (c) 2024, 2025 MongoDB Inc.
 #
-
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 

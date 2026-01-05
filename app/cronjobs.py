@@ -334,6 +334,103 @@ def job_convert_images():
         logger.error(f"job_convert_images failed: {e}")
 
 
+def job_generate_missing_images(limit: int = 50):
+    """
+    Generate images for articles in the news collection that don't have images on PVC.
+    This job ONLY writes to PVC, no MongoDB modifications.
+
+    Args:
+        limit: Maximum number of images to generate (default 50, for rate limiting)
+    """
+    logger.info(f"Starting job_generate_missing_images (limit: {limit})")
+
+    db = get_db()
+    news = db["news"]
+    content_dir = get_content_dir()
+    images_dir = os.path.join(content_dir, 'images')
+    os.makedirs(images_dir, exist_ok=True)
+
+    try:
+        ai = AzureOpenAI(
+            api_version="2024-02-01",
+            api_key=os.environ.get("AZURE_OPENAI_API_KEY", ""),
+            azure_endpoint=os.environ.get('AZURE_OPENAI_ENDPOINT', '')
+        )
+    except Exception as e:
+        logger.error(f"Failed to initialize Azure OpenAI: {e}")
+        return {"error": str(e), "generated": 0}
+
+    generated_count = 0
+    skipped_count = 0
+    failed_count = 0
+
+    try:
+        # Find articles with uuid field
+        for doc in news.find({'uuid': {'$exists': True}}).limit(limit * 2):
+            if generated_count >= limit:
+                break
+
+            uuid = doc.get('uuid')
+            if not uuid:
+                continue
+
+            # Check if image already exists on PVC
+            webp_path = os.path.join(images_dir, f"{uuid}.webp")
+            if os.path.exists(webp_path):
+                skipped_count += 1
+                continue
+
+            title = doc.get('title', '')
+            text = doc.get('text', '')[:350] if doc.get('text') else ''
+
+            if not title:
+                continue
+
+            prompt = """Never show people, organizations, or copyrighted
+            elements. If the following contains text that is not allowed by
+            your safety system then please create a compliant image that
+            comes close: """ + title + " " + text
+
+            try:
+                logger.info(f"Generating image for: {title[:50]}...")
+                response = ai.images.generate(
+                    model="dall-e-3",
+                    prompt=prompt,
+                    size="1792x1024",
+                    quality="standard",
+                    n=1
+                )
+                img_data = requests.get(response.data[0].url).content
+
+                # Save directly as WebP using Pillow
+                from PIL import Image
+                import io
+                img = Image.open(io.BytesIO(img_data))
+                img.save(webp_path, 'WEBP', quality=85)
+
+                generated_count += 1
+                logger.info(f"Generated image {generated_count}/{limit}: {uuid}.webp")
+
+            except Exception as e:
+                logger.warning(f"Image generation failed for {uuid}: {e}")
+                failed_count += 1
+                continue
+
+            sleep(10)  # Rate limiting for DALL-E API
+
+        result = {
+            "generated": generated_count,
+            "skipped": skipped_count,
+            "failed": failed_count
+        }
+        logger.info(f"job_generate_missing_images complete: {result}")
+        return result
+
+    except Exception as e:
+        logger.error(f"job_generate_missing_images failed: {e}")
+        return {"error": str(e), "generated": generated_count}
+
+
 def job_process_incoming():
     """
     Process incoming articles - rewrite with GPT-4o and move to news collection.

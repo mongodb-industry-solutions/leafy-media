@@ -287,3 +287,5 @@ frontend/next-env.d.ts
 
 # Misc
 *.pem
+scripts/test_connection.py
+scripts/export_sample_data.py

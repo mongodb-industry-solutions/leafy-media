@@ -1462,6 +1462,7 @@ def admin_jobs_list():
         'job_news_collect',
         'job_create_images',
         'job_convert_images',
+        'job_generate_missing_images',  # PVC-only: generates images for existing articles
         'job_process_incoming',
         'job_vectorize',
         'job_add_sentiment',
@@ -1490,6 +1491,7 @@ def admin_run_job(job_name):
         job_news_collect,
         job_create_images,
         job_convert_images,
+        job_generate_missing_images,
         job_process_incoming,
         job_vectorize,
         job_add_sentiment,
@@ -1506,6 +1508,7 @@ def admin_run_job(job_name):
         'job_news_collect': job_news_collect,
         'job_create_images': job_create_images,
         'job_convert_images': job_convert_images,
+        'job_generate_missing_images': job_generate_missing_images,
         'job_process_incoming': job_process_incoming,
         'job_vectorize': job_vectorize,
         'job_add_sentiment': job_add_sentiment,
@@ -1528,15 +1531,19 @@ def admin_run_job(job_name):
 
     try:
         start_time = time.time()
-        jobs[job_name]()
+        result = jobs[job_name]()
         duration = time.time() - start_time
 
         print(f"[ADMIN] Job {job_name} completed in {duration:.2f}s", flush=True)
-        return jsonify({
+        response = {
             'status': 'success',
             'job': job_name,
             'duration_seconds': round(duration, 2)
-        })
+        }
+        # Include job result if it returned something
+        if result is not None:
+            response['result'] = result
+        return jsonify(response)
     except Exception as e:
         print(f"[ADMIN] Job {job_name} failed: {e}", flush=True)
         return jsonify({
