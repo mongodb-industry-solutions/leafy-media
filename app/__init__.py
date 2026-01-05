@@ -98,21 +98,12 @@ def create_app(config_name):
     from .agentic import ai as ai_blueprint
     app.register_blueprint(ai_blueprint, url_prefix='/ai')
 
-    # scheduler initialization
+    # Scheduler initialization (for agentic planner only)
     from .jobs import agentic_master_planner
-    # Cron job imports kept for manual triggering via /admin/jobs/run/<job_name>
-    # from .cronjobs import (
-    #     job_update_content,
-    #     job_update_daily,
-    #     job_create_podcast,
-    #     job_keep_cache_warm,
-    #     job_process_incoming_api,
-    # )
 
     if not scheduler.running:
         scheduler.start()
 
-    # Existing agentic job - runs every 30 seconds
     scheduler.add_job(
         func=agentic_master_planner,
         args=[app],
@@ -122,14 +113,6 @@ def create_app(config_name):
         max_instances=1,
         replace_existing=True
     )
-
-    # -------------------------------------------------------------------------
-    # Content Update Jobs - DISABLED (use /admin/jobs/run/<job_name> to trigger manually)
-    # -------------------------------------------------------------------------
-
-    print("[SCHEDULER] Cron jobs disabled (manual trigger only via /admin/jobs/run/<job_name>)", flush=True)
-    for job in scheduler.get_jobs():
-        print(f"[SCHEDULER]   - {job.id}: next run at {job.next_run_time}", flush=True)
 
     # Request logging middleware
     @app.before_request
