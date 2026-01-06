@@ -5,9 +5,10 @@ from time import sleep
 import keyparams, os, requests, json, uuid
 
 client = MongoClient(keyparams.MONGO_URI)
-dbName = "1_media_demo"
+dbName = keyparams.MONGO_DB_NAME
 incoming = client[dbName]["news_incoming"]
 news = client[dbName]["news"]
+print(f"Using database: {dbName}")
 
 target_dir = '/var/tmp/images.leafy.media'
 

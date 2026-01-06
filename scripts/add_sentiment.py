@@ -10,9 +10,10 @@ from openai import OpenAI
 import keyparams
 
 client = MongoClient(keyparams.MONGO_URI)
-dbName = "1_media_demo"
+dbName = keyparams.MONGO_DB_NAME
 collectionName = "news"
 collection = client[dbName][collectionName]
+print(f"Using database: {dbName}")
 
 ai = OpenAI()
 

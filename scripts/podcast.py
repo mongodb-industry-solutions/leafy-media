@@ -8,8 +8,9 @@ import os, datetime, time, requests
 from bs4 import BeautifulSoup
 from pydub import AudioSegment
 
-audio_dir = '/usr/local/share/content/audio'
-podcast_tmp_file = '/var/tmp/podcast_tmp.mp3'
+audio_dir = os.environ.get('LOCAL_AUDIO_DIR', '/tmp/leafy-media-audio')
+os.makedirs(audio_dir, exist_ok=True)
+podcast_tmp_file = '/tmp/podcast_tmp.mp3'
 
 token = os.getenv('AUTOCONTENT_API_KEY')
 create_url = 'https://api.autocontentapi.com/Content/Create'

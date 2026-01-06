@@ -12,9 +12,10 @@ from langchain_openai import OpenAIEmbeddings
 import sys, keyparams
 
 client = MongoClient(keyparams.MONGO_URI)
-dbName = "1_media_demo"
+dbName = keyparams.MONGO_DB_NAME
 collectionName = "news"
 collection = client[dbName][collectionName]
+print(f"Using database: {dbName}")
 
 openai = OpenAI(api_key=keyparams.openai_api_key)
 def generate_openai_embeddings(text: str) -> list[float]:

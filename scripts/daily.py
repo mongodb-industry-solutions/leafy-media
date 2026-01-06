@@ -9,11 +9,12 @@ import os, json, datetime, pymongo
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
-MCONN = os.getenv('MONGODB_LEAFY_MEDIA')
-MBASE = "1_media_demo"
+MCONN = os.getenv('MONGODB_IST_MEDIA')
+MBASE = os.getenv('MONGODB_DB_NAME', 'test-media')
 
 news_collection = pymongo.MongoClient(MCONN)[MBASE]["news"]
 daily_collection = pymongo.MongoClient(MCONN)[MBASE]["daily"]
+print(f"Using database: {MBASE}")
 
 ai = OpenAI()
 

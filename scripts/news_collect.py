@@ -10,9 +10,10 @@ from time import sleep
 import keyparams, os, requests, json, uuid
 
 client = MongoClient(keyparams.MONGO_URI)
-dbName = "1_media_demo"
+dbName = keyparams.MONGO_DB_NAME
 collectionName = "news_incoming"
 collection = client[dbName][collectionName]
+print(f"Using database: {dbName}")
 
 api_key = keyparams.NEWS_API_KEY
 search_url = keyparams.NEWS_API_URL

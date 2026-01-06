@@ -11,11 +11,13 @@ from openai import AzureOpenAI
 import keyparams, os, requests
 
 client = MongoClient(keyparams.MONGO_URI)
-dbName = "1_media_demo"
+dbName = keyparams.MONGO_DB_NAME
 incoming = client[dbName]["news_incoming"]
 news = client[dbName]["news"]
+print(f"Using database: {dbName}")
 
-tmp_dir = '/var/tmp/images.leafy.media'
+tmp_dir = os.environ.get('IMAGES_TMP_DIR', '/tmp/leafy-media-images')
+os.makedirs(tmp_dir, exist_ok=True)
 
 ai = AzureOpenAI(
     api_version="2024-02-01",

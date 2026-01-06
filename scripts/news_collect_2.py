@@ -12,9 +12,10 @@ from dateutil import parser as date_parser
 import keyparams, os, sys, requests, json, uuid, feedparser, cloudscraper
 
 client = MongoClient(keyparams.MONGO_URI)
-dbName = "1_media_demo"
+dbName = keyparams.MONGO_DB_NAME
 collectionName = "news_incoming"
 collection = client[dbName][collectionName]
+print(f"Using database: {dbName}")
 
 try:
     sector_id = sys.argv[1]
