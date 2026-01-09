@@ -8,6 +8,8 @@ from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
 from time import sleep
 from openai import AzureOpenAI
+from PIL import Image
+from io import BytesIO
 import keyparams, os, requests
 
 client = MongoClient(keyparams.MONGO_URI)
@@ -57,8 +59,9 @@ try:
             uuids_to_delete.append(doc['uuid'])
             continue
         img_data = requests.get(response.data[0].url).content
-        with open(tmp_dir + '/' + doc['uuid'] + '.png', 'wb') as handler:
-            handler.write(img_data)
+        # Convert PNG to WebP for smaller file size
+        img = Image.open(BytesIO(img_data))
+        img.save(tmp_dir + '/' + doc['uuid'] + '.webp', 'WEBP', quality=85)
         print(".", end="", flush=True)
         sleep(10) # let's be gentle - don't rush
 
