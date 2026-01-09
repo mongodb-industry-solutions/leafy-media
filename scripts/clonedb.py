@@ -10,10 +10,11 @@ import keyparams
 
 client = MongoClient(keyparams.MONGO_URI)
 clientNew = MongoClient(keyparams.MONGO_URI_NEW)
-dbName = "1_media_demo"
+dbName = keyparams.MONGO_DB_NAME
 collectionName = "business_news"
 collection = client[dbName][collectionName]
 collectionNew = clientNew[dbName][collectionName]
+print(f"Using database: {dbName}")
 
 i = 0
 try:

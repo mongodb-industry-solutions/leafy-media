@@ -5,6 +5,7 @@
 # Copyright (c) 2025 MongoDB Inc.
 # Author: Benjamin Lorenz <benjamin.lorenz@mongodb.com>
 
+import os
 import httpx
 import time
 import random
@@ -12,7 +13,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from faker import Faker
 
-BASE_URL = "https://leafy.media"
+BASE_URL = os.getenv('MAIN_BASE_URL', 'https://leafy.media')
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 TIMEOUT = httpx.Timeout(connect=5.0, read=30.0, write=5.0, pool=10.0)
 LIMITS = httpx.Limits(max_connections=100, max_keepalive_connections=20)

@@ -10,8 +10,11 @@ SOLANA_RPC_URL = "https://api.mainnet-beta.solana.com"
 ACCOUNT_ADDRESS = "918Y2TZvy386gXLWxGM9sBVutviT77xJriCDQsZeheEF"
 USDT_TOKEN_ADDRESS = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
 
-solana_collection_tx = pymongo.MongoClient(os.getenv('MONGODB_LEAFY_MEDIA'))["1_media_demo"]["solana_tx"]
-solana_collection_tmp = pymongo.MongoClient(os.getenv('MONGODB_LEAFY_MEDIA'))["1_media_demo"]["solana_tmp"]
+db_name = os.getenv('MONGODB_DB_NAME', 'test-media')
+mongo_client = pymongo.MongoClient(os.getenv('MONGODB_LEAFY_MEDIA'))
+solana_collection_tx = mongo_client[db_name]["solana_tx"]
+solana_collection_tmp = mongo_client[db_name]["solana_tmp"]
+print(f"Using database: {db_name}")
 
 def get_tx_details(signature):
     payload = {

@@ -4,17 +4,13 @@
 #
 
 from openai import OpenAI
-import os, json, datetime, pymongo
+import json, datetime, pymongo
+import keyparams
 
-
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-
-MCONN = os.getenv('MONGODB_IST_MEDIA')
-MBASE = os.getenv('MONGODB_DB_NAME', 'test-media')
-
-news_collection = pymongo.MongoClient(MCONN)[MBASE]["news"]
-daily_collection = pymongo.MongoClient(MCONN)[MBASE]["daily"]
-print(f"Using database: {MBASE}")
+client = pymongo.MongoClient(keyparams.MONGO_URI)
+news_collection = client[keyparams.MONGO_DB_NAME]["news"]
+daily_collection = client[keyparams.MONGO_DB_NAME]["daily"]
+print(f"Using database: {keyparams.MONGO_DB_NAME}")
 
 ai = OpenAI()
 

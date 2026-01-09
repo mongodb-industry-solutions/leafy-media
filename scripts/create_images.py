@@ -16,7 +16,8 @@ incoming = client[dbName]["news_incoming"]
 news = client[dbName]["news"]
 print(f"Using database: {dbName}")
 
-tmp_dir = os.environ.get('IMAGES_TMP_DIR', '/tmp/leafy-media-images')
+content_dir = os.environ.get('CONTENT_DIR', '/app/content')
+tmp_dir = os.environ.get('IMAGES_TMP_DIR', f'{content_dir}/images')
 os.makedirs(tmp_dir, exist_ok=True)
 
 ai = AzureOpenAI(

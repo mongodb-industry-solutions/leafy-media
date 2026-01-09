@@ -31,6 +31,8 @@ sidecarContainers:
         value: http://localhost:8080/api
       - name: CONTENT_DIR
         value: /app/content
+      - name: IMAGES_TMP_DIR
+        value: /app/content/images
       # MongoDB connections
       - name: MONGODB_LEAFY_MEDIA
         valueFrom:
@@ -42,6 +44,18 @@ sidecarContainers:
           secretKeyRef:
             name: leafy-media
             key: MONGODB_LEAFY_MEDIA_PREVIEW
+      # MongoDB for staging scripts (uses same connection as MONGODB_LEAFY_MEDIA)
+      - name: MONGODB_IST_MEDIA
+        valueFrom:
+          secretKeyRef:
+            name: leafy-media
+            key: MONGODB_LEAFY_MEDIA
+      # Enable scheduled content jobs
+      - name: ENABLE_CONTENT_JOBS
+        value: "true"
+      # MongoDB database name (used by cronjob scripts)
+      - name: MONGODB_DB_NAME
+        value: "test-media"
       # OpenAI / Azure OpenAI
       - name: OPENAI_API_KEY
         valueFrom:

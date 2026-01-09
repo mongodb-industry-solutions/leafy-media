@@ -10,18 +10,15 @@ from time import sleep
 import keyparams, os, requests
 
 client = MongoClient(keyparams.MONGO_URI)
-dbName = "1_media_demo"
+dbName = keyparams.MONGO_DB_NAME
 collectionName = "business_news"
 collection = client[dbName][collectionName]
+print(f"Using database: {dbName}")
 
 
-target_dir = "/var/tmp/images.leafy.media"
-
-try:
-    os.mkdir(target_dir)
-except Exception as e:
-    print(e)
-    exit(1)
+content_dir = os.environ.get('CONTENT_DIR', '/app/content')
+target_dir = os.environ.get('IMAGES_TMP_DIR', f'{content_dir}/images')
+os.makedirs(target_dir, exist_ok=True)
 
 
 i = 0

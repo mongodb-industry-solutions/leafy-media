@@ -18,7 +18,8 @@ status_base_url = 'https://api.autocontentapi.com/content/status/'
 poll_interval = 10
 today = datetime.datetime.now(datetime.UTC)
 
-response = requests.get("https://leafy.media/feed")
+base_url = os.getenv('MAIN_BASE_URL', 'https://leafy.media')
+response = requests.get(f"{base_url}/feed")
 response.raise_for_status()
 soup = BeautifulSoup(response.content, "html.parser")
 paragraphs = [p.get_text() for p in soup.body.find_all("p", recursive=False)]

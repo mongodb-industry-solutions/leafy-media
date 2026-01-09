@@ -10,9 +10,10 @@ from eventregistry import *
 import time, json, os, sys, uuid, hashlib, keyparams
 
 client = MongoClient(keyparams.MONGO_URI)
-dbName = "1_media_demo"
+dbName = keyparams.MONGO_DB_NAME
 collectionName = "business_news"
 collection = client[dbName][collectionName]
+print(f"Using database: {dbName}")
 
 er = EventRegistry(apiKey = "5f4327ac-4b71-45c6-bded-ad7f72c2eb72", allowUseOfArchive=False)
 

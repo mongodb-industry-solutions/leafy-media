@@ -10,7 +10,8 @@ incoming = client[dbName]["news_incoming"]
 news = client[dbName]["news"]
 print(f"Using database: {dbName}")
 
-target_dir = '/var/tmp/images.leafy.media'
+content_dir = os.environ.get('CONTENT_DIR', '/app/content')
+target_dir = os.environ.get('IMAGES_TMP_DIR', f'{content_dir}/images')
 
 ai = OpenAI()
 

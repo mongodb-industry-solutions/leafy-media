@@ -10,6 +10,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from bson import ObjectId
 from config import config
 import logging
+import os
 import sys
 import time
 import traceback
@@ -98,12 +99,22 @@ def create_app(config_name):
     from .agentic import ai as ai_blueprint
     app.register_blueprint(ai_blueprint, url_prefix='/ai')
 
-    # Scheduler initialization (for agentic planner only)
-    from .jobs import agentic_master_planner
+    # Scheduler initialization
+    from .jobs import (
+        agentic_master_planner,
+        update_section,
+        update_daily_summary,
+        create_podcast,
+        update_content,
+        send_daily_mail,
+        process_incoming_api,
+        keep_cache_warm
+    )
 
     if not scheduler.running:
         scheduler.start()
 
+    # Agentic planner - every 30 seconds
     scheduler.add_job(
         func=agentic_master_planner,
         args=[app],
@@ -113,6 +124,41 @@ def create_app(config_name):
         max_instances=1,
         replace_existing=True
     )
+
+    # Content update jobs - only run if ENABLE_CONTENT_JOBS env var is set
+    if os.getenv('ENABLE_CONTENT_JOBS', '').lower() == 'true':
+        print("[SCHEDULER] Content jobs ENABLED", flush=True)
+
+        # Section updates (weekdays, staggered throughout the day - UTC times)
+        scheduler.add_job(func=update_section, args=['travel'], trigger='cron', hour=7, minute=9, day_of_week='mon-fri', id='update_travel', max_instances=1, replace_existing=True)
+        scheduler.add_job(func=update_section, args=['autos'], trigger='cron', hour=8, minute=9, day_of_week='mon-fri', id='update_autos', max_instances=1, replace_existing=True)
+        scheduler.add_job(func=update_section, args=['europe'], trigger='cron', hour='9,16', minute=9, day_of_week='mon-sat', id='update_europe', max_instances=1, replace_existing=True)
+        scheduler.add_job(func=update_section, args=['tech'], trigger='cron', hour='10,17', minute=9, day_of_week='mon-sat', id='update_tech', max_instances=1, replace_existing=True)
+        scheduler.add_job(func=update_section, args=['business'], trigger='cron', hour='11,18', minute=9, day_of_week='mon-sat', id='update_business', max_instances=1, replace_existing=True)
+        scheduler.add_job(func=update_section, args=['intnews'], trigger='cron', hour='12,19', minute=9, day_of_week='mon-fri', id='update_intnews', max_instances=1, replace_existing=True)
+        scheduler.add_job(func=update_section, args=['usnews'], trigger='cron', hour=20, minute=9, day_of_week='mon-fri', id='update_usnews', max_instances=1, replace_existing=True)
+        scheduler.add_job(func=update_section, args=['finance'], trigger='cron', hour='13,21', minute=9, day_of_week='mon-fri', id='update_finance', max_instances=1, replace_existing=True)
+        scheduler.add_job(func=update_section, args=['earnings'], trigger='cron', hour=23, minute=9, day_of_week='mon-fri', id='update_earnings', max_instances=1, replace_existing=True)
+
+        # Daily summary (weekdays 14:21 & 23:21 UTC)
+        scheduler.add_job(func=update_daily_summary, trigger='cron', hour='14,23', minute=21, day_of_week='mon-fri', id='daily_summary', max_instances=1, replace_existing=True)
+
+        # Podcast (weekdays 14:29 & 23:29 UTC)
+        scheduler.add_job(func=create_podcast, trigger='cron', hour='14,23', minute=29, day_of_week='mon-fri', id='create_podcast', max_instances=1, replace_existing=True)
+
+        # Update content - news_collect (weekdays 14:09 UTC)
+        scheduler.add_job(func=update_content, trigger='cron', hour=14, minute=9, day_of_week='mon-fri', id='update_content', max_instances=1, replace_existing=True)
+
+        # Send daily email (weekdays 23:25 UTC)
+        scheduler.add_job(func=send_daily_mail, trigger='cron', hour=23, minute=25, day_of_week='mon-fri', id='send_daily_mail', max_instances=1, replace_existing=True)
+
+        # Process incoming API content (every hour at :37 and :58)
+        scheduler.add_job(func=process_incoming_api, trigger='cron', minute='37,58', id='process_incoming_api', max_instances=1, replace_existing=True)
+
+        # Keep cache warm (every 7 minutes)
+        scheduler.add_job(func=keep_cache_warm, trigger='interval', minutes=7, id='keep_cache_warm', max_instances=1, replace_existing=True)
+    else:
+        print("[SCHEDULER] Content jobs DISABLED (set ENABLE_CONTENT_JOBS=true to enable)", flush=True)
 
     # Request logging middleware
     @app.before_request

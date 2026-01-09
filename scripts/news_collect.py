@@ -17,7 +17,8 @@ print(f"Using database: {dbName}")
 
 api_key = keyparams.NEWS_API_KEY
 search_url = keyparams.NEWS_API_URL
-tmp_dir = '/var/tmp/images.leafy.media'
+content_dir = os.environ.get('CONTENT_DIR', '/app/content')
+tmp_dir = os.environ.get('IMAGES_TMP_DIR', f'{content_dir}/images')
 
 params = {
     'api-key' : api_key,

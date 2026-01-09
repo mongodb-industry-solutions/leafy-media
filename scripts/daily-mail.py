@@ -3,15 +3,15 @@
 # Author: Benjamin Lorenz <benjamin.lorenz@mongodb.com>
 #
 
-import os, datetime, pymongo, smtplib, markdown
+import datetime, pymongo, smtplib, markdown
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import keyparams
 
-MCONN = os.getenv('MONGODB_LEAFY_MEDIA')
-MBASE = "1_media_demo"
-
-news_collection = pymongo.MongoClient(MCONN)[MBASE]["news"]
-daily_collection = pymongo.MongoClient(MCONN)[MBASE]["daily"]
+client = pymongo.MongoClient(keyparams.MONGO_URI)
+news_collection = client[keyparams.MONGO_DB_NAME]["news"]
+daily_collection = client[keyparams.MONGO_DB_NAME]["daily"]
+print(f"Using database: {keyparams.MONGO_DB_NAME}")
 
 formatted_date = datetime.datetime.now(datetime.UTC).strftime("%d %B %Y")
 

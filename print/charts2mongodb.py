@@ -9,9 +9,10 @@ import json
 from pymongo import MongoClient
 
 client = MongoClient(os.environ.get('MONGODB_LEAFY_MEDIA', ''))
-dbName = "1_media_demo"
+dbName = os.environ.get('MONGODB_DB_NAME', 'test-media')
 collectionName = "charts"
 collection = client[dbName][collectionName]
+print(f"Using database: {dbName}")
 
 # Traverse the current directory recursively
 json_files = []

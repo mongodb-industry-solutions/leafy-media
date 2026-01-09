@@ -11,9 +11,10 @@ from pymongo.errors import DuplicateKeyError
 import keyparams, os, requests, json, uuid
 
 client = MongoClient(keyparams.MONGO_URI)
-dbName = "1_media_demo"
+dbName = keyparams.MONGO_DB_NAME
 collectionName = "news_incoming"
 collection = client[dbName][collectionName]
+print(f"Using database: {dbName}")
 
 # Delete documents where 'source' != 'api' or 'source' does not exist
 result = collection.delete_many({

@@ -4,9 +4,10 @@ from os import environ
 import readline
 
 client = MongoClient(environ.get('MONGODB_LEAFY_MEDIA', ''))
-dbName = "1_media_demo"
+dbName = environ.get('MONGODB_DB_NAME', 'test-media')
 collectionName = "charts"
 collection = client[dbName][collectionName]
+print(f"Using database: {dbName}")
 
 voyage_client = Client()
 

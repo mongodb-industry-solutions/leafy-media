@@ -11,9 +11,10 @@ import webzio
 import keyparams
 
 client = MongoClient(keyparams.MONGO_URI)
-dbName = "1_media_demo"
+dbName = keyparams.MONGO_DB_NAME
 collectionName = "business_news"
 collection = client[dbName][collectionName]
+print(f"Using database: {dbName}")
 
 webzio.config(token=keyparams.webzio_token)
 hours = 48 # how much to look back for news
