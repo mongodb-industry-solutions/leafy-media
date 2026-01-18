@@ -1,3 +1,6 @@
+# Archive (old cronjob scripts)
+archive/
+
 # Kanopy
 knowledge_base_kanopy/
 cicd-kanopy/
@@ -289,3 +292,4 @@ frontend/next-env.d.ts
 *.pem
 scripts/test_connection.py
 scripts/export_sample_data.py
+CHANGELOG_STAGING.md

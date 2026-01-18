@@ -131,7 +131,7 @@ def create_app(config_name):
 
         # Section updates (weekdays, staggered throughout the day - UTC times)
         scheduler.add_job(func=update_section, args=['travel'], trigger='cron', hour=7, minute=9, day_of_week='mon-fri', id='update_travel', max_instances=1, replace_existing=True)
-        scheduler.add_job(func=update_section, args=['autos'], trigger='cron', hour=8, minute=9, day_of_week='mon-fri', id='update_autos', max_instances=1, replace_existing=True)
+        scheduler.add_job(func=update_section, args=['autos'], trigger='cron', hour='8,15', minute=9, day_of_week='mon-fri', id='update_autos', max_instances=1, replace_existing=True)
         scheduler.add_job(func=update_section, args=['europe'], trigger='cron', hour='9,16', minute=9, day_of_week='mon-sat', id='update_europe', max_instances=1, replace_existing=True)
         scheduler.add_job(func=update_section, args=['tech'], trigger='cron', hour='10,17', minute=9, day_of_week='mon-sat', id='update_tech', max_instances=1, replace_existing=True)
         scheduler.add_job(func=update_section, args=['business'], trigger='cron', hour='11,18', minute=9, day_of_week='mon-sat', id='update_business', max_instances=1, replace_existing=True)
