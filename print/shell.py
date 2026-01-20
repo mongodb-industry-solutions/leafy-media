@@ -3,8 +3,8 @@ from voyageai import Client
 from os import environ
 import readline
 
-client = MongoClient(environ.get('MONGODB_LEAFY_MEDIA', ''))
-dbName = environ.get('MONGODB_DB_NAME', 'test-media')
+client = MongoClient(environ.get('MONGODB_IST_MEDIA', ''))
+dbName = environ.get('MONGODB_DB_NAME', '')
 collectionName = "print"
 collection = client[dbName][collectionName]
 print(f"Using database: {dbName}")

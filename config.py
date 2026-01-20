@@ -10,8 +10,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
 
     # MongoDB Atlas - use .get() to avoid crash if env var missing
-    MONGO_URI = os.environ.get('MONGODB_LEAFY_MEDIA', '')
-    MONGO_URI_PREVIEW = os.environ.get('MONGODB_LEAFY_MEDIA_PREVIEW', '')
+    MONGO_URI = os.environ.get('MONGODB_IST_MEDIA', '')
+    MONGO_URI_PREVIEW = os.environ.get('MONGODB_IST_MEDIA_PREVIEW', '')
 
     # Content directory for media files (images, audio, video)
     CONTENT_DIR = os.environ.get('CONTENT_DIR', '/app/content')

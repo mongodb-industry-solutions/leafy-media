@@ -10,8 +10,8 @@ SOLANA_RPC_URL = "https://api.mainnet-beta.solana.com"
 ACCOUNT_ADDRESS = "918Y2TZvy386gXLWxGM9sBVutviT77xJriCDQsZeheEF"
 USDT_TOKEN_ADDRESS = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
 
-db_name = os.getenv('MONGODB_DB_NAME', 'test-media')
-mongo_client = pymongo.MongoClient(os.getenv('MONGODB_LEAFY_MEDIA'))
+db_name = os.getenv('MONGODB_DB_NAME', '')
+mongo_client = pymongo.MongoClient(os.getenv('MONGODB_IST_MEDIA'))
 solana_collection_tx = mongo_client[db_name]["solana_tx"]
 solana_collection_tmp = mongo_client[db_name]["solana_tmp"]
 print(f"Using database: {db_name}")

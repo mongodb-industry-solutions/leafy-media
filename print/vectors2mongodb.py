@@ -8,8 +8,8 @@ import os
 import json
 from pymongo import MongoClient
 
-client = MongoClient(os.environ.get('MONGODB_LEAFY_MEDIA', ''))
-dbName = os.environ.get('MONGODB_DB_NAME', 'test-media')
+client = MongoClient(os.environ.get('MONGODB_IST_MEDIA', ''))
+dbName = os.environ.get('MONGODB_DB_NAME', '')
 collectionName = "print"
 collection = client[dbName][collectionName]
 print(f"Using database: {dbName}")

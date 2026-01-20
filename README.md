@@ -18,7 +18,7 @@ Ok, if you still want to get the demo running locally, here's the instructions.
 
 ```
 OPENAI_API_KEY=
-MONGODB_LEAFY_MEDIA="<your connection string>"
+MONGODB_IST_MEDIA="<your connection string>"
 ```
 
 #### Install Python 3.11

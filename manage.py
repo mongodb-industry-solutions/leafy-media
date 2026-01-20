@@ -16,8 +16,8 @@ print("=" * 60, flush=True)
 
 env_vars_to_check = [
     'FLASK_CONFIG',
-    'MONGODB_LEAFY_MEDIA',
-    'MONGODB_LEAFY_MEDIA_PREVIEW',
+    'MONGODB_IST_MEDIA',
+    'MONGODB_IST_MEDIA_PREVIEW',
     'OPENAI_API_KEY',
     'VOYAGE_API_KEY',
     'XAI_API_KEY',
