@@ -49,7 +49,7 @@ sidecarContainers:
         value: "false"
       # MongoDB database name (used by cronjob scripts)
       - name: MONGODB_DB_NAME
-        value: "test-media"
+        value: "1_media_demo"
       # OpenAI / Azure OpenAI
       - name: OPENAI_API_KEY
         valueFrom:
