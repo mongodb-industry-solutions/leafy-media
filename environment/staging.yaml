@@ -44,9 +44,9 @@ sidecarContainers:
           secretKeyRef:
             name: leafy-media
             key: MONGODB_IST_MEDIA_PREVIEW
-      # Enable scheduled content jobs
+      # Scheduled content jobs (disabled by default in staging)
       - name: ENABLE_CONTENT_JOBS
-        value: "true"
+        value: "false"
       # MongoDB database name (used by cronjob scripts)
       - name: MONGODB_DB_NAME
         value: "test-media"

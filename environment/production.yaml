@@ -45,6 +45,9 @@ sidecarContainers:
       # MongoDB database name
       - name: MONGODB_DB_NAME
         value: "1_media_demo"
+      # Scheduled content jobs (enabled by default in production)
+      - name: ENABLE_CONTENT_JOBS
+        value: "true"
       # OpenAI / Azure OpenAI
       - name: OPENAI_API_KEY
         valueFrom:

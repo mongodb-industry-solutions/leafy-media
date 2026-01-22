@@ -125,9 +125,18 @@ def create_app(config_name):
         replace_existing=True
     )
 
-    # Content update jobs - only run if ENABLE_CONTENT_JOBS env var is set
-    if os.getenv('ENABLE_CONTENT_JOBS', '').lower() == 'true':
-        print("[SCHEDULER] Content jobs ENABLED", flush=True)
+    # Content update jobs - determine if enabled based on environment
+    # staging: disabled by default, production: enabled by default
+    flask_env = os.getenv('FLASK_ENV', '')
+    enable_jobs_override = os.getenv('ENABLE_CONTENT_JOBS', '')
+
+    if enable_jobs_override:
+        jobs_enabled = enable_jobs_override.lower() == 'true'
+    else:
+        jobs_enabled = flask_env == 'production'
+
+    if jobs_enabled:
+        print(f"[SCHEDULER] Content jobs ENABLED (FLASK_ENV={flask_env})", flush=True)
 
         # Section updates (weekdays, staggered throughout the day - UTC times)
         scheduler.add_job(func=update_section, args=['travel'], trigger='cron', hour=7, minute=9, day_of_week='mon-fri', id='update_travel', max_instances=1, replace_existing=True)
@@ -158,7 +167,7 @@ def create_app(config_name):
         # Keep cache warm (every 7 minutes)
         scheduler.add_job(func=keep_cache_warm, trigger='interval', minutes=7, id='keep_cache_warm', max_instances=1, replace_existing=True)
     else:
-        print("[SCHEDULER] Content jobs DISABLED (set ENABLE_CONTENT_JOBS=true to enable)", flush=True)
+        print(f"[SCHEDULER] Content jobs DISABLED (FLASK_ENV={flask_env}, set ENABLE_CONTENT_JOBS=true to override)", flush=True)
 
     # Request logging middleware
     @app.before_request
