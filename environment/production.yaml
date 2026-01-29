@@ -35,12 +35,12 @@ sidecarContainers:
       - name: MONGODB_LEAFY_MEDIA
         valueFrom:
           secretKeyRef:
-            name: leafy-media-prod
+            name: leafy-media
             key: MONGODB_LEAFY_MEDIA
       - name: MONGODB_LEAFY_MEDIA_PREVIEW
         valueFrom:
           secretKeyRef:
-            name: leafy-media-prod
+            name: leafy-media
             key: MONGODB_LEAFY_MEDIA_PREVIEW
       # MongoDB database name
       - name: MONGODB_DB_NAME
@@ -52,57 +52,57 @@ sidecarContainers:
       - name: OPENAI_API_KEY
         valueFrom:
           secretKeyRef:
-            name: leafy-media-prod
+            name: leafy-media
             key: OPENAI_API_KEY
       - name: AZURE_OPENAI_API_KEY
         valueFrom:
           secretKeyRef:
-            name: leafy-media-prod
+            name: leafy-media
             key: AZURE_OPENAI_API_KEY
       - name: AZURE_OPENAI_ENDPOINT
         valueFrom:
           secretKeyRef:
-            name: leafy-media-prod
+            name: leafy-media
             key: AZURE_OPENAI_ENDPOINT
       # xAI API
       - name: XAI_API_KEY
         valueFrom:
           secretKeyRef:
-            name: leafy-media-prod
+            name: leafy-media
             key: XAI_API_KEY
       # Voyage AI (for embeddings)
       - name: VOYAGE_API_KEY
         valueFrom:
           secretKeyRef:
-            name: leafy-media-prod
+            name: leafy-media
             key: VOYAGE_API_KEY
       # News API
       - name: NEWS_API_URL
         valueFrom:
           secretKeyRef:
-            name: leafy-media-prod
+            name: leafy-media
             key: NEWS_API_URL
       - name: NEWS_API_KEY
         valueFrom:
           secretKeyRef:
-            name: leafy-media-prod
+            name: leafy-media
             key: NEWS_API_KEY
       # Auto Content API (for podcasts)
       - name: AUTOCONTENT_API_KEY
         valueFrom:
           secretKeyRef:
-            name: leafy-media-prod
+            name: leafy-media
             key: AUTOCONTENT_API_KEY
       # Basic Auth credentials
       - name: LEAFY_MEDIA_AUTH_USERNAME
         valueFrom:
           secretKeyRef:
-            name: leafy-media-prod
+            name: leafy-media
             key: LEAFY_MEDIA_AUTH_USERNAME
       - name: LEAFY_MEDIA_AUTH_PASSWORD
         valueFrom:
           secretKeyRef:
-            name: leafy-media-prod
+            name: leafy-media
             key: LEAFY_MEDIA_AUTH_PASSWORD
     # Mount the same PV for content access
     volumeMounts:
