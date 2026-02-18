@@ -4,7 +4,7 @@ This demo showcases an AI-powered news website.
 ## Highlights
 
 - Joint play of Python/Flask, MongoDB Atlas, Vector Search, Langchain, and OpenAI.
-- Allows to experiment with Personalization, Content Suggestions, Summarization, Keyword Extraction, and RAG-based News Insights. See [leafy.media/welcome](https://leafy.media/welcome) for more information about the functionality of the demo.
+- Allows to experiment with Personalization, Content Suggestions, Summarization, Keyword Extraction, and RAG-based News Insights. See [https://leafy-media.industrysolutions.prod.corp.mongodb.com/welcome](https://leafy-media.industrysolutions.prod.corp.mongodb.com/welcome) for more information about the functionality of the demo.
 
 ## Installation on a Mac
 
