@@ -116,3 +116,10 @@ sidecarContainers:
       requests:
         cpu: 250m
         memory: 512Mi
+
+security:
+  dataClassification: "Internal"
+  dataDesignation: ["MI"]
+
+ownership:
+  driEmail: "benjamin.lorenze@mongodb.com"
