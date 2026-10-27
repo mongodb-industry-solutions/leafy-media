@@ -49,8 +49,9 @@ class ProductionConfig(Config):
     AGENTIC_BASE_URL = os.environ.get('AGENTIC_BASE_URL', 'https://leafy.media/agentic')
 
     # cookie security
-    SESSION_COOKIE_SECURE    = True
-    REMEMBER_COOKIE_SECURE   = True
+    # secure by default; staging is reached over plain HTTP and turns this off
+    SESSION_COOKIE_SECURE    = os.environ.get('SESSION_COOKIE_SECURE', 'true').lower() == 'true'
+    REMEMBER_COOKIE_SECURE   = SESSION_COOKIE_SECURE
     REMEMBER_COOKIE_HTTPONLY = True
 
     @classmethod

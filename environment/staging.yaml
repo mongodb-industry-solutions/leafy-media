@@ -25,6 +25,9 @@ sidecarContainers:
         value: production
       - name: FLASK_ENV
         value: staging
+      # Staging is accessed over plain HTTP, so the session cookie cannot be Secure
+      - name: SESSION_COOKIE_SECURE
+        value: "false"
       - name: MAIN_BASE_URL
         value: http://localhost:8080
       - name: API_BASE_URL
